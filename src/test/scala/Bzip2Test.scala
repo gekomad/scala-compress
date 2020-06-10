@@ -16,7 +16,7 @@ class Bzip2Test extends AnyFunSuite {
       case Failure(e) => assert(false, e)
       case Success(statistics) =>
         println("-----------\n" + Util.toString(statistics) + "-----------\n")
-        bzip2Decompress(dest + s"/$file.bz2", srcDecr) match { // non tiene il nome
+        bzip2Decompress(dest + s"/$file.bz2", srcDecr) match {
           case Failure(e) => assert(false, e)
           case Success(statistics) =>
             println("-----------\n" + Util.toString(statistics) + "-----------\n")

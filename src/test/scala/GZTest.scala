@@ -5,11 +5,22 @@ import scala.util.{Failure, Success}
 import com.github.gekomad.scalacompress.Compressors._
 import scala.annotation.tailrec
 
+import com.github.gekomad.scalacompress.Util.SEP
 class GZTest extends AnyFunSuite {
 
   test("gz compress buffer") {
     import java.io.FileOutputStream
-    val gzFile = "/tmp/file.gz"
+
+      val tmpDir  = Util.createTmpDir(suiteName)
+      val file    ="aa.txt"
+
+    val src     = getClass.getResource(file).getPath
+
+    val dest    = s"$tmpDir"
+
+      assert(gzCompress(src, dest).isSuccess)
+
+    val gzFile =dest + s"${SEP}$file.gz"
 
     {
       val gzStream         = GzCompressBuffer(new FileOutputStream(gzFile))
@@ -46,7 +57,7 @@ class GZTest extends AnyFunSuite {
     }
   }
 
-  test("gz compress") {
+  test("gz compress file") {
     val tmpDir  = Util.createTmpDir(suiteName)
     val file    = "aa.txt"
     val src     = getClass.getResource(file).getPath

@@ -1,15 +1,11 @@
 import java.io.File
 import java.util.UUID
 
-import com.github.gekomad.scalacompress.Util.fileAccess
+import Util.root
+import com.github.gekomad.scalacompress.Util.{SEP, fileAccess}
 import org.scalatest.funsuite.AnyFunSuite
 
 class UtilTest extends AnyFunSuite {
-
-  test("isDirectory") {
-    assert(!com.github.gekomad.scalacompress.Util.isWritableDirectory(UUID.randomUUID().toString))
-    assert(com.github.gekomad.scalacompress.Util.isWritableDirectory("."))
-  }
 
   test("fileAccess") {
     val uuid = UUID.randomUUID().toString
@@ -21,10 +17,14 @@ class UtilTest extends AnyFunSuite {
 
   test("commonPath") {
 
-    assert(Util.commonPath(List("a.txt", "b.txt").map(new File(_))) == "/")
-    assert(Util.commonPath(List("/a/b/c/d/a.txt", "/a/b/c/j.txt").map(new File(_))) == "/a/b/c")
-    assert(Util.commonPath(List("/a/b/c/d/a.txt", "/x/b/c/j.txt").map(new File(_))) == "/")
-    assert(Util.commonPath(List("/a/b/c/d/a.txt", "/a/b/c/d/b.txt").map(new File(_))) == "/a/b/c/d")
+    val a = List(root + "/a/b/c/d/a.txt", "/a/b/c/j.txt").map(_.replace("/", SEP))
+    val b = List(root + "/a/b/c/d/a.txt", "/x/b/c/j.txt").map(_.replace("/", SEP))
+    val c = List(root + "/a/b/c/d/a.txt", "/a/b/c/d/b.txt").map(_.replace("/", SEP))
+
+    assert(Util.commonPath(List("a.txt", "b.txt").map(new File(_))) == root)
+    assert(Util.commonPath(a.map(new File(_))) == root + "a/b/c".replace("/", SEP))
+    assert(Util.commonPath(b.map(new File(_))) == root)
+    assert(Util.commonPath(c.map(new File(_))) == root + "a/b/c/d".replace("/", SEP))
 
   }
 

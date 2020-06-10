@@ -9,7 +9,7 @@ class SnappyTest extends AnyFunSuite {
   test("snappy compress") {
     val tmpDir  = Util.createTmpDir(suiteName)
     val file    = "aa.txt"
-    val src     = getClass.getResource(file).getPath
+    val src     = new File( getClass.getResource(file).getPath).getAbsolutePath
     val srcDecr = s"$tmpDir/adec"
     val dest    = s"$tmpDir"
     new File(srcDecr).mkdirs()

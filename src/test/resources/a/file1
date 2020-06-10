@@ -87,7 +87,7 @@ trait Validators {
 
     // aXXX (e.g. aparamss) => characteristics of the actual macro impl signature extracted from the macro impl ("a" stands for "actual")
     // rXXX (e.g. rparamss) => characteristics of the reference macro impl signature synthesized from the macro def ("r" stands for "reference")
-    // FIXME: cannot write this concisely because of scala/bug#7507
+    // FI1ME: cannot write this concisely because of scala/bug#7507
     //lazy val MacroImplSig(atparams, aparamss, aret) = macroImplSig
     //lazy val MacroImplSig(_, rparamss, rret) = referenceMacroImplSig
     lazy val atparams = macroImplSig.tparams
@@ -943,7 +943,7 @@ trait Reifiers {
     Select(tree, ExprSplice)
   }
 
-  // fixme: if I put utils here, then "global" from utils' early initialization syntax
+  // fi1me: if I put utils here, then "global" from utils' early initialization syntax
   // and "global" that comes from here conflict with each other when incrementally compiling
   // the problem is that both are pickled with the same owner - trait Reifiers
   // and this upsets the compiler, so that oftentimes it throws assertion failures
@@ -15549,7 +15549,7 @@ trait Namers extends MethodSynthesis {
       else innerNamer
     }
 
-    // FIXME - this logic needs to be thoroughly explained
+    // FIX1E - this logic needs to be thoroughly explained
     // and justified.  I know it's wrong with respect to package
     // objects, but I think it's also wrong in other ways.
     protected def conflict(newS: Symbol, oldS: Symbol) = (
@@ -15559,7 +15559,7 @@ trait Namers extends MethodSynthesis {
        ) &&
       !(   // @M: allow repeated use of `_` for higher-order type params
            (newS.owner.isTypeParameter || newS.owner.isAbstractType)
-           // FIXME: name comparisons not successful, are these underscores
+           // FI1ME: name comparisons not successful, are these underscores
            // sometimes nme.WILDCARD and sometimes tpnme.WILDCARD?
         && (newS.name string_== nme.WILDCARD)
        )
@@ -15582,7 +15582,7 @@ trait Namers extends MethodSynthesis {
 
     /** Enter symbol into given scope and return symbol itself */
     def enterInScope(sym: Symbol, scope: Scope): Symbol = {
-      // FIXME - this is broken in a number of ways.
+      // FIX1E - this is broken in a number of ways.
       //
       // 1) If "sym" allows overloading, that is not itself sufficient to skip
       // the check, because "prev.sym" also must allow overloading.
@@ -15606,7 +15606,7 @@ trait Namers extends MethodSynthesis {
           DoubleDefError(sym, prev.sym)
           sym setInfo ErrorType
           scope unlink prev.sym // let them co-exist...
-          // FIXME: The comment "let them co-exist" is confusing given that the
+          // FIX1E: The comment "let them co-exist" is confusing given that the
           // line it comments unlinks one of them.  What does it intend?
         }
       }
@@ -21115,7 +21115,7 @@ abstract class RefChecks extends Transform {
       case TypeRef(pre, sym, args) =>
         tree match {
           case tt: TypeTree if tt.original == null => // scala/bug#7783 don't warn about inferred types
-                                                      // FIXME: reconcile this check with one in resetAttrs
+                                                      // FIX1E: reconcile this check with one in resetAttrs
           case _ => checkUndesiredProperties(sym, tree.pos)
         }
         if(sym.isJavaDefined)

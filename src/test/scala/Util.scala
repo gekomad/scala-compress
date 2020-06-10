@@ -1,4 +1,5 @@
 import java.io.File
+import java.nio.file.Paths
 import java.util.UUID
 
 import com.github.gekomad.scalacompress.CompressionStats
@@ -9,6 +10,7 @@ import scala.annotation.tailrec
 import scala.util.Try
 
 object Util {
+  val root = Paths.get(new File("a.txt").getAbsolutePath).getRoot.toString
 
   def formatStatistics(s: CompressionStats, millDecompress: Long): String = {
     val method       = s.method
@@ -48,17 +50,18 @@ object Util {
   def commonPath(ll: List[File]): String = {
 
     @tailrec
-    def _commonPath(l: List[File], parent: String): String = {
-      val c = l.forall(x => x.getAbsolutePath.startsWith(parent))
-      if (!c)
-        _commonPath(l, getParent(new File(parent)))
-      else
-        parent
+    def go(l: List[File], parent: String): String = {
+      val c = l.forall(_.getAbsolutePath.startsWith(parent))
+      if (!c) go(l, new File(getParent(new File(parent))).getAbsolutePath)
+      else parent
     }
-    _commonPath(ll, getParent(ll.head))
+    go(ll, new File(getParent(ll.head)).getAbsolutePath)
   }
 
   def createTmpDir(name: String): String = {
+    // workaround - sbt doesn't copy empty folders
+    Try(new File(getClass.getResource(s"a/empty/this_file_will_be_delete").getPath).delete)
+
     val tmp = System.getProperty("java.io.tmpdir")
     java.nio.file.Files
       .createDirectories(new File(s"$tmp/scala-compress/$name-${UUID.randomUUID().toString}").toPath)

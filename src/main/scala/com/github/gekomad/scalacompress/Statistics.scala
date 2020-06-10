@@ -14,10 +14,10 @@ import scala.util.Try
   *
   * @param method Compression method
   * @param fileIn Files and folders to compress
-  * @param fileOut Compressed file name
+  * @param fileOut Compressed file
   * @param sizeIn Total fileIn size
   * @param sizeOut Total fileOut size
-  * @param compressionRatio Uncompress size/compress size
+  * @param compressionRatio Uncompress file size/compress file size
   * @param millSeconds Time to compress
   * @param mbPerSecond Compression speed in MB per second
   */
@@ -35,11 +35,11 @@ case class CompressionStats(
 /**
   *
   * @param method Compression method
-  * @param fileIn Compressed file name
+  * @param fileIn Compressed file
   * @param fileOut Decompressed files and folders
   * @param sizeIn Total fileIn size
   * @param sizeOut Total fileOut size
-  * @param compressionRatio Uncompress size/compress size
+  * @param compressionRatio Uncompress file size/compress file size
   * @param millSeconds Time to decompress
   * @param mbPerSecond Decompression speed in MB per second
   */

@@ -5,7 +5,7 @@ Archivers and Compressors for Scala
   
 #### Add the library to your project  
   
-`libraryDependencies += "com.github.gekomad" %% "scala-compress" % "0.0.1"`  
+`libraryDependencies += "com.github.gekomad" %% "scala-compress" % "0.0.2"`  
 
 Compression/Decompression methods return Statistics
 
@@ -175,7 +175,7 @@ assert(decompressed.toString == "foobar")
 
 |Compression ratio|Speed|Files type|Options|    
 |--|--|--|--|
-|Bad|Very good|File and folders||
+|Bad|Very good|File and folders|Extract single entry|
 
 Compress  
   
@@ -190,7 +190,12 @@ val tarFile: String = "/x/a.tar"
 val destinationFolder: String = "/foo/"
 val decompress: Try[DecompressionStats] = tarDecompress(tarFile, destinationFolder)
 ```
-
+Extract a single entry  
+```scala
+val tarFile: String = "/x/a.tar" 
+val destinationFolder: String = "/foo/"
+val decompress: Try[DecompressionStats] = tarDecompress(tarFile, destinationFolder, Some(List("/an/entry")))
+```
 ## Bzip2  
 
 |Compression ratio|Speed|Files type|Options|    
@@ -214,7 +219,7 @@ val decompress: Try[DecompressionStats] = bzip2Decompress(compressedFile, destin
 ## Ar
 |Compression ratio|Speed|Files type|Options|    
 |--|--|--|--|
-|Bad|Very good|Files and folders||
+|Bad|Very good|Files and folders|Extract single entry, limit size file 16 chars|
 
 Compress
 ```scala
@@ -227,6 +232,13 @@ Decompress
 val compressedFile: String = "/a/a.ar"
 val destinationFolder: String = "/foo/"
 val decompress: Try[DecompressionStats] = arDecompress(compressedFile, destinationFolder)  
+```
+
+Extract a single entry  
+```scala
+val arFile: String = "/x/a.tar" 
+val destinationFolder: String = "/foo/"
+val decompress: Try[DecompressionStats] = arDecompress(arFile, destinationFolder, Some(List("/an/entry")))
 ```
 ## Deflate
 
@@ -291,7 +303,7 @@ val decompress: Try[DecompressionStats] = lzmaDecompress(compressedFile, destina
 
 |Compression ratio|Speed|Files type|Options|    
 |--|--|--|--|
-|Bad|Very good|Files and folders||
+|Bad|Very good|Files and folders|Extract single entry|
 
 
 Compress  
@@ -307,10 +319,16 @@ val cpioFile: String = "a.cpio"
 val destinationFolder: String = "/a/b/c"  
 val decompress: Try[DecompressionStats] = cpioDecompress(cpioFile, destinationFolder)  
 ```
+Extract a single entry  
+```scala
+val cpioFile: String = "/x/a.tar" 
+val destinationFolder: String = "/foo/"
+val decompress: Try[DecompressionStats] = cpioDecompress(cpioFile, destinationFolder, Some(List("/an/entry")))
+```
 ## 7zip  
 |Compression ratio|Speed|Files type|Options|    
 |--|--|--|--|
-|Good|Bad|Files and folders||
+|Good|Bad|Files and folders|Extract single entry|
 Compress  
   
 ```scala
@@ -323,6 +341,13 @@ Decompress
 val compressedFile: String = "/a/a.7z"
 val destinationFolder: String = "/foo/"
 val decompress: Try[DecompressionStats] = sevenZipDecompress(compressedFile, destinationFolder)  
+```
+
+Extract a single entry  
+```scala
+val sevenZipFile: String = "/x/a.7z" 
+val destinationFolder: String = "/foo/"
+val decompress: Try[DecompressionStats] = sevenZipDecompress(sevenZipFile, destinationFolder, Some(List("/an/entry")))
 ```
   
 ## Snappy
@@ -376,7 +401,7 @@ val compress: Try[CompressionStats] = zStandardCompress(fileToCompress, destinat
 ```
 Decompress  
 ```scala
-val compressedFile: String = "/foo/a.txt.zstd"  
+val compressedFile: String = "/foo/a.txt.zst"  
 val destinationFolder: String = "/bar/"  
 val decompress: Try[DecompressionStats] = zStandardDecompress(compressedFile, destinationFolder)  
 ```
@@ -401,7 +426,7 @@ val destinationFolder: String = "/bar/"
 val decompress: Try[DecompressionStats] = pack200Decompress(compressedFile, destinationFolder)  
 ```
 ## Scaladoc API  
-[Scala doc](https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13)  
+[Scala doc](https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13/latest/com/github/gekomad/scalacompress/index.html)  
   
 ## Bugs and Feedback  
 For bugs, questions and discussions please use [Github Issues](https://github.com/gekomad/scala-compress/issues).  

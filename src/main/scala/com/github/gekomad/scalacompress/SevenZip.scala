@@ -3,13 +3,19 @@ package com.github.gekomad.scalacompress
 import java.io._
 import java.nio.file.{Files, Paths}
 import com.github.gekomad.scalacompress.Util.autoClose
+import com.github.gekomad.scalacompress.Util.SEP
 import org.apache.commons.compress.archivers.sevenz.{SevenZFile, SevenZOutputFile}
 import scala.annotation.tailrec
 import scala.util.{Failure, Try}
 
 private[scalacompress] object SevenZip {
 
-  def sevenZipDecompress(compressed: String, decompressed: String, bufferSize: Int = 4096): Try[List[String]] = Try {
+  def sevenZipDecompress(
+    compressed: String,
+    decompressed: String,
+    entries: Option[List[String]] = None,
+    bufferSize: Int = 4096
+  ): Try[List[String]] = Try {
 
     def inout(in: SevenZFile, out: OutputStream): Unit = {
       val buffer = new Array[Byte](bufferSize)
@@ -25,17 +31,24 @@ private[scalacompress] object SevenZip {
     }
 
     @tailrec
-    def write(sevenZFile: SevenZFile, outFiles: List[String]): List[String] = {
+    def extractEntries(sevenZFile: SevenZFile, outFiles: List[String], entries: Option[List[String]]): List[String] = {
       val entry = sevenZFile.getNextEntry
       if (entry != null) {
-        val fileOut  = s"$decompressed/${entry.getName}"
-        val confFile = new File(fileOut)
-        confFile.getParentFile.mkdirs()
-        autoClose(Files.newOutputStream(Paths.get(fileOut)))(out => inout(sevenZFile, out))
-        write(sevenZFile, fileOut :: outFiles)
+        if (entries.isEmpty || entries.get.contains(entry.getName)) {
+          val fileOut = decompressed + SEP + entry.getName
+          val file    = new File(fileOut)
+          if (entry.isDirectory) {
+            Files.createDirectories(new File(file.getAbsolutePath).toPath)
+            extractEntries(sevenZFile, fileOut :: outFiles, entries)
+          } else {
+            Files.createDirectories(new File(file.getParent).toPath)
+            autoClose(Files.newOutputStream(Paths.get(fileOut)))(out => inout(sevenZFile, out))
+            extractEntries(sevenZFile, fileOut :: outFiles, entries)
+          }
+        } else extractEntries(sevenZFile, outFiles, entries)
       } else outFiles
     }
-    autoClose(new SevenZFile(new File(compressed)))(sevenZFile => write(sevenZFile, Nil))
+    autoClose(new SevenZFile(new File(compressed)))(sevenZFile => extractEntries(sevenZFile, Nil, entries))
   }
 
   def sevenZipCompress(
@@ -67,10 +80,8 @@ private[scalacompress] object SevenZip {
               ll.foreach { fileToCompress =>
                 val entry = sevenZOutput.createArchiveEntry(fileToCompress._1, fileToCompress._2)
                 sevenZOutput.putArchiveEntry(entry)
-                autoClose(new FileInputStream(fileToCompress._1)) { ii =>
-                  write(ii, sevenZOutput)
-                  sevenZOutput.closeArchiveEntry()
-                }
+                if (!entry.isDirectory) autoClose(new FileInputStream(fileToCompress._1))(ii => write(ii, sevenZOutput))
+                sevenZOutput.closeArchiveEntry()
               }
             }
           }
@@ -84,5 +95,6 @@ private[scalacompress] object SevenZip {
           )
         )
     }
+
   }
 }

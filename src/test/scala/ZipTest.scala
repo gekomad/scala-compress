@@ -3,6 +3,7 @@ import java.io.File
 import com.github.gekomad.scalacompress.Compressors._
 import org.scalatest.funsuite.AnyFunSuite
 import scala.util.{Failure, Success}
+import com.github.gekomad.scalacompress.Util.SEP
 
 class ZipTest extends AnyFunSuite {
 
@@ -19,12 +20,13 @@ class ZipTest extends AnyFunSuite {
         println("-----------\n" + Util.toString(statistics) + "-----------\n")
 
     }
-    val a1 = zipEntries(gzFile) match {
-      case Failure(exception) => assert(false, exception)
-      case Success(value)     => value.map(a => (a.getName, a.getSize)).toSet
+    val a1: Set[String] = zipEntries(gzFile) match {
+      case Failure(exception) => throw new Exception(exception)
+      case Success(value)     => value.map(a => a.getName).toSet
     }
     assert(
-      a1 == Set(("a/file1", 1000000), ("a/aa.txt", 38809), ("a/b/b.txt", 3), ("a/b/b2.txt", 4), ("a/b/c/c.txt", 1))
+      a1 == Set(s"a/file1", s"a/empty/", s"a/aa.txt", s"a/b/b.txt", s"a/b/b2.txt", s"a/b/c/c.txt") ||
+        a1 == Set(s"a/file1", s"a\\empty/", s"a/aa.txt", s"a/b/b.txt", s"a/b/b2.txt", s"a/b/c/c.txt")
     )
 
     val array: Array[Byte] = zipDecompressEntry(gzFile, "a/b/c/c.txt").get
@@ -34,7 +36,7 @@ class ZipTest extends AnyFunSuite {
     val l  = Util.getListOfFiles(src).get
     val l2 = Util.getListOfFiles(s"$tmpDir/zipdir").get
     assert(l.size == l2.size)
-    l zip l2 foreach { r =>
+    l.filter(_.isFile) zip l2.filter(_.isFile) foreach { r =>
       val (f1, f2) = r
       assert(f1.getName == f2.getName)
       assert(scala.io.Source.fromFile(f1).mkString == scala.io.Source.fromFile(f2).mkString)
@@ -51,10 +53,11 @@ class ZipTest extends AnyFunSuite {
     assert(zipCompress(List(src), dest).isSuccess)
     val a1 = zipEntries(dest) match {
       case Failure(exception) => assert(false, exception)
-      case Success(value)     => value.map(a => (a.getName, a.getSize)).toSet
+      case Success(value)     => value.map(a => a.getName).toSet
     }
     assert(
-      a1 == Set(("a/file1", 1000000), ("a/aa.txt", 38809), ("a/b/b.txt", 3), ("a/b/b2.txt", 4), ("a/b/c/c.txt", 1))
+      a1 == Set("a/file1", "a/empty/", "a/aa.txt", "a/b/b.txt", "a/b/b2.txt", "a/b/c/c.txt") ||
+        a1 == Set("a/file1", "a\\empty/", "a/aa.txt", "a/b/b.txt", "a/b/b2.txt", "a/b/c/c.txt")
     )
 
     val array = zipDecompressEntry(dest, "a/b/c/c.txt").get
@@ -64,7 +67,7 @@ class ZipTest extends AnyFunSuite {
     val l  = Util.getListOfFiles(src).get
     val l2 = Util.getListOfFiles(s"$tmpDir/zipdir").get
     assert(l.size == l2.size)
-    l zip l2 foreach { r =>
+    l.filter(_.isFile) zip l2.filter(_.isFile) foreach { r =>
       val (f1, f2) = r
       assert(f1.getName == f2.getName)
       assert(scala.io.Source.fromFile(f1).mkString == scala.io.Source.fromFile(f2).mkString)
@@ -78,16 +81,16 @@ class ZipTest extends AnyFunSuite {
     val dest = s"$tmpDir/b.zip"
     assert(zipCompress(List(src), dest).isSuccess)
     val a1 = zipEntries(dest) match {
-      case Success(value) => value.map(a => (a.getName, a.getSize))
-      case _              => ???
+      case Success(value) => value.map(a => a.getName)
+      case Failure(e)     => throw new Exception(e)
     }
-    assert(a1 == List(("aa.txt", 38809)))
+    assert(a1 == List("aa.txt"))
     assert(zipDecompress(dest, s"$tmpDir/zipdir").isSuccess)
 
     val l  = Util.getListOfFiles(src).get
     val l2 = Util.getListOfFiles(s"$tmpDir/zipdir").get
     assert(l.size == l2.size)
-    l zip l2 foreach { r =>
+    l.filter(_.isFile) zip l2.filter(_.isFile) foreach { r =>
       val (f1, f2) = r
       assert(f1.getName == f2.getName)
       assert(scala.io.Source.fromFile(f1).mkString == scala.io.Source.fromFile(f2).mkString)
@@ -106,10 +109,10 @@ class ZipTest extends AnyFunSuite {
         println("-----------\n" + Util.toString(statistics) + "-----------\n")
     }
     val a1 = zipEntries(dest + s"/$file.zip") match {
-      case Success(value) => value.map(a => (a.getName, a.getSize))
-      case _              => ???
+      case Success(value) => value.map(_.getName)
+      case Failure(e)     => throw new Exception(e)
     }
-    assert(a1 == List((file, 4)))
+    assert(a1 == List(file))
     zipDecompress(dest + s"/$file.zip", s"$tmpDir/zipdir") match {
       case Failure(e) => assert(false, e)
       case Success(statistics) =>
@@ -119,7 +122,7 @@ class ZipTest extends AnyFunSuite {
     val l  = Util.getListOfFiles(src).get
     val l2 = Util.getListOfFiles(s"$tmpDir/zipdir").get
     assert(l.size == l2.size)
-    l zip l2 foreach { r =>
+    l.filter(_.isFile) zip l2.filter(_.isFile) foreach { r =>
       val (f1, f2) = r
       assert(f1.getName == f2.getName)
       assert(scala.io.Source.fromFile(f1).mkString == scala.io.Source.fromFile(f2).mkString)
@@ -156,33 +159,30 @@ class ZipTest extends AnyFunSuite {
     val a = zipCompress(src, dest)
     assert(a.isSuccess)
     a match {
-      case Failure(_) => ???
+      case Failure(e) => throw new Exception(e)
       case Success(statistics) =>
         println("-----------\n" + Util.toString(statistics) + "-----------\n")
 
     }
     val a1 = zipEntries(dest) match {
-      case Success(value) =>
-        value.map { a =>
-          (new File(a.getName).getPath, a.getSize)
-        }.toSet
-      case _ => ???
+      case Success(value) => value.map(a => new File(a.getName).getPath).toSet
+      case Failure(e)     => throw new Exception(e)
     }
     assert(
-      a1 == Set(
-        ("aa.txt", 4),
-        ("b.txt", 3),
-        ("a/file1", 1000000),
-        ("a/aa.txt", 38809),
-        ("a/b/b.txt", 3),
-        ("a/b/b2.txt", 4),
-        ("a/b/c/c.txt", 1)
+      a1 == Set("aa.txt", "a/empty", "b.txt", "a/file1", "a/aa.txt", "a/b/b.txt", "a/b/b2.txt", "a/b/c/c.txt") || a1 == Set(
+        "aa.txt",
+        "a\\empty",
+        "b.txt",
+        "a\\file1",
+        "a\\aa.txt",
+        "a\\b\\b.txt",
+        "a\\b\\b2.txt",
+        "a\\b\\c\\c.txt"
       )
     )
-
     assert(zipDecompress(dest, s"$tmpDir/zipdir").isSuccess)
-
   }
+
   test("zip multiple file and folder with folder name") {
     val tmpDir = Util.createTmpDir(suiteName)
 
@@ -202,21 +202,19 @@ class ZipTest extends AnyFunSuite {
     }
     val zippedFile = s"$tmpDir/xxx/xxx.zip"
     val a1 = zipEntries(zippedFile) match {
-      case Success(value) =>
-        value.map { a =>
-          (new File(a.getName).getPath, a.getSize)
-        }.toSet
-      case _ => ???
+      case Success(value) => value.map(a => new File(a.getName).getPath).toSet
+      case Failure(e)     => throw new Exception(e)
     }
     assert(
       a1 == Set(
-        ("aa.txt", 4),
-        ("b.txt", 3),
-        ("a/file1", 1000000),
-        ("a/aa.txt", 38809),
-        ("a/b/b.txt", 3),
-        ("a/b/b2.txt", 4),
-        ("a/b/c/c.txt", 1)
+        "aa.txt",
+        s"a${SEP}empty",
+        "b.txt",
+        s"a${SEP}file1",
+        s"a${SEP}aa.txt",
+        s"a${SEP}b${SEP}b.txt",
+        s"a${SEP}b${SEP}b2.txt",
+        s"a${SEP}b${SEP}c${SEP}c.txt"
       )
     )
     assert(zipDecompress(zippedFile, s"$tmpDir/zipdir").isSuccess)

@@ -5,7 +5,7 @@ import com.github.gekomad.scalacompress.Compressors._
 
 class ZstandardTest extends AnyFunSuite {
 
-  test("zStandard compress") {
+  test("zStandard") {
     val tmpDir  = Util.createTmpDir(suiteName)
     val file    = "aa.txt"
     val src     = getClass.getResource(file).getPath
@@ -16,7 +16,7 @@ class ZstandardTest extends AnyFunSuite {
       case Failure(e) => assert(false, e)
       case Success(statistics) =>
         println("-----------\n" + Util.toString(statistics) + "-----------\n")
-        zStandardDecompress(dest + s"/$file.zstd", srcDecr) match {
+        zStandardDecompress(dest + s"/$file.zst", srcDecr) match {
           case Failure(exception) => assert(false, exception)
           case Success(statistics) =>
             println("-----------\n" + Util.toString(statistics) + "-----------\n")

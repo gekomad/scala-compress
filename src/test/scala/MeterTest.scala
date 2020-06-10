@@ -7,7 +7,7 @@ class MeterTest extends AnyFunSuite {
   ignore("meter") {
 
     val file = "blob.scala"
-    val src  = getClass.getResource(file).getPath
+    val src  = new File(getClass.getResource(file).getPath).getPath
 
     println(
       "|Compression method|Output file size|Compression ratio|Milliseconds to compress|MB per second compression|Milliseconds to decompress|MB per second decompression|"
@@ -137,7 +137,7 @@ class MeterTest extends AnyFunSuite {
       new File(srcDecr).mkdirs()
       val statistics = zStandardCompress(src, dest).get
 
-      val deco = zStandardDecompress(dest + s"/$file.zstd", srcDecr).get
+      val deco = zStandardDecompress(dest + s"/$file.zst", srcDecr).get
       println(Util.formatStatistics(statistics, deco.millSeconds))
     }
 

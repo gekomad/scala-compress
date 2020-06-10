@@ -1,20 +1,27 @@
 package com.github.gekomad.scalacompress
 
-import java.io.{File, IOException, InputStream, OutputStream}
+import java.io.{File, IOException}
 import java.nio.file.{Files, Paths, StandardCopyOption}
+
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream}
+
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 object Util {
 
   /**
-    *
-    * @param s
-    * @return true if the folder is writable
+    * The system-dependent path-separator character
     */
-  def isWritableDirectory(s: String): Boolean =
-    Try(new File(s)) match {
+  val SEP: String = java.io.File.separator
+
+  /**
+    *
+    * @param dir
+    * @return true if dir is a writable folder
+    */
+  private[scalacompress] def isWritableDirectory(dir: String): Boolean =
+    Try(new File(dir)) match {
       case Success(f) if f.canWrite && f.isDirectory => true
       case _                                         => false
     }
@@ -48,35 +55,33 @@ object Util {
   }
 
   @tailrec
-  private[scalacompress] def write(
+  private[scalacompress] def extractEntries(
     inStream: ArchiveInputStream,
     dest: String,
+    entries: Option[List[String]], //if none extract all entries
     outFiles: List[String] = Nil
   ): List[String] = {
     val entry: ArchiveEntry = inStream.getNextEntry
     if (entry != null) {
-      val fileOut = s"$dest/${entry.getName}"
-      new File(fileOut).getParentFile.mkdirs()
-      Files.copy(inStream, Paths.get(fileOut), StandardCopyOption.REPLACE_EXISTING)
-      write(inStream, dest, fileOut :: outFiles)
+      if (entries.isEmpty || entries.get.contains(entry.getName) || entries.get.exists(
+            e => entry.getName.startsWith(s"$e/")
+          )) {
+        val fileOut = s"$dest$SEP${entry.getName}"
+        Files.createDirectories(new File(fileOut).getParentFile.toPath)
+        if (entry.isDirectory) Files.createDirectories(new File(fileOut).toPath)
+        else Files.copy(inStream, Paths.get(fileOut), StandardCopyOption.REPLACE_EXISTING)
+        extractEntries(inStream, dest, entries, fileOut :: outFiles)
+      } else extractEntries(inStream, dest, entries, outFiles)
     } else outFiles
   }
 
-  private[scalacompress] def writeBuffer(in: InputStream, zOut: OutputStream, bufferSize: Int = 4096): Unit = {
-    val buffer = new Array[Byte](bufferSize)
-    @tailrec
-    def go(): Unit = {
-      val c = in.read(buffer)
-      if (c != -1) {
-        zOut.write(buffer, 0, c)
-        go()
-      }
-    }
-    go()
-  }
-
-  def getParent(f: File): String = f.getParent match {
-    case null => "/"
+  /**
+    *
+    * @param file
+    * @return File.getParent() or "/" if parent doesn't exist
+    */
+  def getParent(file: File): String = file.getParent match {
+    case null => SEP
     case a    => a
   }
 
@@ -94,7 +99,7 @@ object Util {
   /**
     *
     * @param dir
-    * @return a list of all paths and the lenght of dir's parent
+    * @return A list of all absolute paths under dir and the lenght of dir's parent
     */
   def getListOfFiles(dir: File): Try[List[(File, Int)]] = {
     def go(dir: File): List[File] = dir match {
@@ -102,7 +107,7 @@ object Util {
         if (d.canRead) {
           val files = d.listFiles.filter(_.isFile).toList
           val dirs  = dir.listFiles.filter(_.isDirectory).toList
-          files ::: dirs.foldLeft(List.empty[File])(_ ::: go(_))
+          files ::: (if (dirs.isEmpty && files.isEmpty) List(d) else dirs.foldLeft(List.empty[File])(_ ::: go(_)))
         } else throw new IOException(s"Error opening directory '$d': Permission denied")
       case f => List(f)
     }

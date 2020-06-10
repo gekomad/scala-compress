@@ -1,37 +1,19 @@
 package com.github.gekomad.scalacompress
 
-import java.io._
+import java.io.{InputStream, _}
+import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.util
 import java.util.zip.ZipFile
+
+import com.github.gekomad.scalacompress.Compressors.ZIP
+import com.github.gekomad.scalacompress.Util._
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
-import org.apache.commons.compress.utils.IOUtils
-import scala.util.{Failure, Try}
+
+import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 private[scalacompress] object Zip {
-
-  def zipCompress(in: List[(File, Int)], out: String): Try[Unit] = {
-    val ll = in.map(d => (d._1, d._1.getAbsolutePath.substring(d._2 + 1)))
-    Util.duplicate(ll.map(_._2)) match {
-      case x :: xs =>
-        Failure(new Exception("Duplicate files: " + (x :: xs).mkString(",")))
-      case Nil =>
-        Util.autoClose(new FileOutputStream(out)) { o =>
-          Util.autoClose(
-            new ArchiveStreamFactory()
-              .createArchiveOutputStream(org.apache.commons.compress.archivers.ArchiveStreamFactory.ZIP, o)
-          ) { archive =>
-            Try(ll.foreach { file =>
-              archive.putArchiveEntry(new ZipArchiveEntry(file._1, file._2))
-              Util.autoClose(new FileInputStream(file._1)) { x =>
-                IOUtils.copy(x, archive)
-                archive.closeArchiveEntry()
-              }
-            })
-          }
-        }
-    }
-  }
 
   def zipDecompressEntry(zipFileName: String, entryName: String, bufferSize: Int = 4096): Try[Array[Byte]] = Try {
     Util.autoClose(new ZipFile(zipFileName)) { zipFile =>
@@ -42,5 +24,52 @@ private[scalacompress] object Zip {
       inputStream.close()
       util.Arrays.copyOf(readBuffer, read)
     }
+  }
+
+  def zipCompress(src: List[String], dest: String): Try[CompressionStats] =
+    fileAccess(src) match {
+      case Some(e) => Failure(new Exception(e.mkString(",")))
+      case None =>
+        val a: Try[String] = new File(dest) match {
+          case f if isWritableDirectory(dest) =>
+            if (src.size == 1)
+              Success(s"$dest$SEP${new File(src.head).getName}${ZIP.ext}")
+            else
+              Success(s"$dest$SEP${f.getName}${ZIP.ext}")
+          case f if isWritableDirectory(f.getParent) =>
+            Success(f.getAbsolutePath)
+          case _ => Failure(new Exception(s"file error $dest"))
+        }
+        a.flatMap { fileOut =>
+          val start = System.currentTimeMillis()
+          val b = Try(src.flatMap(z => getListOfFiles(new File(z)).get)).flatMap { ll =>
+            def f(out: OutputStream) =
+              new ArchiveStreamFactory()
+                .createArchiveOutputStream(org.apache.commons.compress.archivers.ArchiveStreamFactory.ZIP, out)
+            def g(f: File, s: String) = new ZipArchiveEntry(f, s)
+
+            Compressors.compress3(Compressors.ZIP.name, ll, fileOut)(f)(g)
+          }
+          b.flatMap(_ => CompressionStats(ZIP.name, src, fileOut, System.currentTimeMillis() - start))
+        }
+    }
+
+  def zipDecompress(src: String, dest: String): Try[DecompressionStats] = {
+    val start = System.currentTimeMillis()
+    Try {
+      autoClose(new ZipFile(src)) { zipFile =>
+        val filesOut = zipFile.entries().asIterator().asScala.map { f =>
+          val entry                = zipFile.getEntry(f.getName)
+          val content: InputStream = zipFile.getInputStream(entry)
+          val fileOut              = s"$dest$SEP${f.getName}"
+          val fo                   = new File(fileOut)
+          Files.createDirectories(fo.getParentFile.toPath)
+          if (entry.isDirectory) Files.createDirectories(fo.toPath)
+          else Files.copy(content, Paths.get(fileOut), StandardCopyOption.REPLACE_EXISTING)
+          fileOut
+        }
+        filesOut.toList
+      }
+    }.flatMap(filesOut => DecompressionStats(ZIP.name, src, filesOut, System.currentTimeMillis() - start))
   }
 }

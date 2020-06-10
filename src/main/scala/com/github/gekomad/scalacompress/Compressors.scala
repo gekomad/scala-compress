@@ -1,13 +1,16 @@
 package com.github.gekomad.scalacompress
 
 import java.io.{BufferedInputStream, ByteArrayOutputStream, InputStream, _}
-import java.nio.file.{Files, Paths, StandardCopyOption}
+import java.nio.file.{Files, Paths}
 import java.util
 import java.util.zip.{GZIPInputStream, GZIPOutputStream, ZipEntry, ZipFile}
 
-import com.github.gekomad.scalacompress.Compressors.checkExtAndDestPath
 import com.github.gekomad.scalacompress.Util._
 import net.jpountz.lz4.{LZ4FrameInputStream, LZ4FrameOutputStream}
+import org.apache.commons.compress.archivers.ar.{ArArchiveEntry, ArArchiveInputStream, ArArchiveOutputStream}
+import org.apache.commons.compress.archivers.cpio.{CpioArchiveEntry, CpioArchiveInputStream, CpioArchiveOutputStream}
+import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveInputStream, TarArchiveOutputStream}
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveOutputStream}
 import org.apache.commons.compress.compressors.CompressorStreamFactory
 import org.apache.commons.compress.compressors.gzip.{GzipCompressorInputStream, GzipCompressorOutputStream}
 import org.apache.commons.compress.compressors.snappy.{
@@ -28,21 +31,20 @@ import scala.util.{Failure, Success, Try}
 object Compressors {
 
   private[scalacompress] case class CompressionMethod(name: String, ext: String, factory: Option[String])
-  private[scalacompress] val DEFLATE = CompressionMethod("Deflate", ".deflate", Some(CompressorStreamFactory.DEFLATE))
-  private[scalacompress] val BZ2     = CompressionMethod("Bz2", ".bz2", Some(CompressorStreamFactory.BZIP2))
-  private[scalacompress] val GZ      = CompressionMethod("GZ", ".gz", Some(CompressorStreamFactory.GZIP))
-  private[scalacompress] val PACK    = CompressionMethod("Pack", ".pack", Some(CompressorStreamFactory.PACK200))
-  private[scalacompress] val XZ      = CompressionMethod("XZ", ".xz", Some(CompressorStreamFactory.XZ))
-  private[scalacompress] val ZSTANDARD =
-    CompressionMethod("Zstandard", ".zstd", Some(CompressorStreamFactory.ZSTANDARD))
-  private[scalacompress] val LZMA   = CompressionMethod("Lzma", ".lzma", Some(CompressorStreamFactory.LZMA))
-  private[scalacompress] val TAR    = CompressionMethod("Tar", ".tar", None)
-  private[scalacompress] val ZIP    = CompressionMethod("Zip", ".zip", None)
-  private[scalacompress] val LZ4    = CompressionMethod("Lz4", ".lz4", None)
-  private[scalacompress] val SNAPPY = CompressionMethod("Snappy", ".sz", None)
-  private[scalacompress] val SEVEN7 = CompressionMethod("7z", ".7z", None)
-  private[scalacompress] val AR     = CompressionMethod("Ar", ".ar", None)
-  private[scalacompress] val CPIO   = CompressionMethod("Cpio", ".cpio", None)
+  private[scalacompress] val DEFLATE   = CompressionMethod("Deflate", ".deflate", Some(CompressorStreamFactory.DEFLATE))
+  private[scalacompress] val BZ2       = CompressionMethod("Bz2", ".bz2", Some(CompressorStreamFactory.BZIP2))
+  private[scalacompress] val GZ        = CompressionMethod("GZ", ".gz", Some(CompressorStreamFactory.GZIP))
+  private[scalacompress] val PACK      = CompressionMethod("Pack", ".pack", Some(CompressorStreamFactory.PACK200))
+  private[scalacompress] val XZ        = CompressionMethod("XZ", ".xz", Some(CompressorStreamFactory.XZ))
+  private[scalacompress] val ZSTANDARD = CompressionMethod("Zstandard", ".zst", Some(CompressorStreamFactory.ZSTANDARD))
+  private[scalacompress] val LZMA      = CompressionMethod("Lzma", ".lzma", Some(CompressorStreamFactory.LZMA))
+  private[scalacompress] val TAR       = CompressionMethod("Tar", ".tar", None)
+  private[scalacompress] val ZIP       = CompressionMethod("Zip", ".zip", None)
+  private[scalacompress] val LZ4       = CompressionMethod("Lz4", ".lz4", None)
+  private[scalacompress] val SNAPPY    = CompressionMethod("Snappy", ".sz", None)
+  private[scalacompress] val SEVEN7    = CompressionMethod("7z", ".7z", None)
+  private[scalacompress] val AR        = CompressionMethod("Ar", ".ar", None)
+  private[scalacompress] val CPIO      = CompressionMethod("Cpio", ".cpio", None)
 
   /**
     *
@@ -82,17 +84,20 @@ object Compressors {
     */
   def lz4Compress(src: String, dest: String): Try[CompressionStats] =
     compress(src, dest, LZ4)((b: BufferedOutputStream, i: InputStream) => {
-      autoClose(new LZ4FrameOutputStream(b))(zOut => writeBuffer(i, zOut))
+      autoClose(new LZ4FrameOutputStream(b))(zOut => IOUtils.copy(i, zOut))
     })
 
-  // Tar
   /**
     *
     * @param src File to decompress
     * @param dest Destination folder
+    * @param entries If != None extract only these entries
     * @return Statistics on decompression procedure
     */
-  def tarDecompress(src: String, dest: String): Try[DecompressionStats] = Tar.tarDecompress(src, dest)
+  def tarDecompress(src: String, dest: String, entries: Option[List[String]] = None): Try[DecompressionStats] =
+    decompress3(Compressors.TAR.name, src, dest, entries)(
+      (src: String) => new TarArchiveInputStream(Files.newInputStream(Paths.get(src)))
+    )
 
   /**
     *
@@ -104,37 +109,24 @@ object Compressors {
     fileAccess(src) match {
       case Some(e) => Failure(new Exception(e.mkString(",")))
       case None =>
-        Try(src.flatMap(z => getListOfFiles(new File(z)).get)).flatMap(ll => Tar.tarCompress(ll, dest))
+        def f(out: OutputStream) = {
+          val ar = new TarArchiveOutputStream(out)
+          ar.setLongFileMode(org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX)
+          ar
+        }
+        def g(f: File, s: String) = new TarArchiveEntry(f, s)
+
+        Try(src.flatMap(z => getListOfFiles(new File(z)).get))
+          .flatMap(ll => compress3(Compressors.TAR.name, ll, dest)(f)(g))
     }
 
-//zip
   /**
     *
     * @param src File and folder to compress
     * @param dest Destination folder
     * @return Statistics on compression procedure
     */
-  def zipCompress(src: List[String], dest: String): Try[CompressionStats] =
-    fileAccess(src) match {
-      case Some(e) => Failure(new Exception(e.mkString(",")))
-      case None =>
-        val a: Try[String] = new File(dest) match {
-          case f if isWritableDirectory(dest) =>
-            if (src.size == 1)
-              Success(s"$dest/${new File(src.head).getName}${ZIP.ext}")
-            else
-              Success(s"$dest/${f.getName}${ZIP.ext}")
-          case f if isWritableDirectory(f.getParent) =>
-            Success(f.getAbsolutePath)
-          case _ => Failure(new Exception(s"file error $dest"))
-        }
-        a.flatMap { fileOut =>
-          val start = System.currentTimeMillis()
-          val aa    = Try(src.flatMap(z => getListOfFiles(new File(z)).get))
-          val b     = aa.flatMap(ll => Zip.zipCompress(ll, fileOut))
-          b.flatMap(_ => CompressionStats(ZIP.name, src, fileOut, System.currentTimeMillis() - start))
-        }
-    }
+  def zipCompress(src: List[String], dest: String): Try[CompressionStats] = Zip.zipCompress(src, dest)
 
   /**
     *
@@ -171,9 +163,7 @@ object Compressors {
     * @return ZipEntry List
     */
   def zipEntries(src: String): Try[List[ZipEntry]] = Try {
-    autoClose(new ZipFile(src)) { x =>
-      x.entries().asIterator().asScala.toList
-    }
+    autoClose(new ZipFile(src))(_.entries().asIterator().asScala.toList)
   }
 
   /**
@@ -182,22 +172,7 @@ object Compressors {
     * @param dest Destination folder
     * @return Statistics on decompression procedure
     */
-  def zipDecompress(src: String, dest: String): Try[DecompressionStats] = {
-    val start = System.currentTimeMillis()
-    Try {
-      autoClose(new ZipFile(src)) { zipFile =>
-        val filesOut = zipFile.entries().asIterator().asScala.map { f =>
-          val entry                = zipFile.getEntry(f.getName)
-          val content: InputStream = zipFile.getInputStream(entry)
-          val fileOut              = dest + "/" + f.getName
-          new File(fileOut).getParentFile.mkdirs()
-          Files.copy(content, Paths.get(fileOut), StandardCopyOption.REPLACE_EXISTING)
-          fileOut
-        }
-        filesOut.toList
-      }
-    }.flatMap(filesOut => DecompressionStats(ZIP.name, src, filesOut, System.currentTimeMillis() - start))
-  }
+  def zipDecompress(src: String, dest: String): Try[DecompressionStats] = Zip.zipDecompress(src, dest)
 
   /**
     *
@@ -214,29 +189,47 @@ object Compressors {
     * @param dest Destination folder
     * @return Statistics on decompression procedure
     */
-  def sevenZipDecompress(src: String, dest: String): Try[DecompressionStats] =
+  def sevenZipDecompress(src: String, dest: String, entries: Option[List[String]] = None): Try[DecompressionStats] =
     checkSrcPath(List(src), dest) {
       val start = System.currentTimeMillis()
       SevenZip
-        .sevenZipDecompress(src, dest)
+        .sevenZipDecompress(src, dest, entries)
         .flatMap(filesOut => DecompressionStats(SEVEN7.name, src, filesOut, System.currentTimeMillis() - start))
     }.flatten
 
-  /**
-    *
-    * @param src File to decompress
-    * @param dest Destination folder
-    * @return Statistics on decompression procedure
-    */
-  def arDecompress(src: String, dest: String): Try[DecompressionStats] = Ar.arDecompress(src, dest)
+  private def decompress3(name: String, src: String, dest: String, entries: Option[List[String]])(
+    f: String => ArchiveInputStream
+  ): Try[DecompressionStats] = {
+    val start = System.currentTimeMillis()
+    for {
+      filesOut <- Try(Util.autoClose(f(src))(in => Util.extractEntries(in, dest, entries)))
+      stat     <- DecompressionStats(name, src, filesOut, System.currentTimeMillis() - start)
+    } yield stat
+  }
 
   /**
     *
     * @param src File to decompress
     * @param dest Destination folder
+    * @param entries If != None extract only these entries
     * @return Statistics on decompression procedure
     */
-  def cpioDecompress(src: String, dest: String): Try[DecompressionStats] = Cpio.cpioDecompress(src, dest)
+  def arDecompress(src: String, dest: String, entries: Option[List[String]] = None): Try[DecompressionStats] =
+    decompress3(Compressors.AR.name, src, dest, entries)(
+      (src: String) => new ArArchiveInputStream(Files.newInputStream(Paths.get(src)))
+    )
+
+  /**
+    *
+    * @param src File to decompress
+    * @param dest Destination folder
+    * @param entries If != None extract only these entries
+    * @return Statistics on decompression procedure
+    */
+  def cpioDecompress(src: String, dest: String, entries: Option[List[String]] = None): Try[DecompressionStats] =
+    decompress3(Compressors.CPIO.name, src, dest, entries)(
+      (src: String) => new CpioArchiveInputStream(Files.newInputStream(Paths.get(src)))
+    )
 
   /**
     *
@@ -266,11 +259,11 @@ object Compressors {
     decompress2(src, dest, GZ)
 
   def gzCompressStream(in: InputStream, out: OutputStream): Try[Unit] = Try {
-    Util.autoClose(new GzipCompressorOutputStream(out))(zStream => writeBuffer(in, zStream))
+    Util.autoClose(new GzipCompressorOutputStream(out))(zStream => IOUtils.copy(in, zStream))
   }
 
   def gzDecompressStream(in: InputStream, out: OutputStream): Try[Unit] = Try {
-    Util.autoClose(new GzipCompressorInputStream(in))(zStream => writeBuffer(zStream, out))
+    Util.autoClose(new GzipCompressorInputStream(in))(zStream => IOUtils.copy(zStream, out))
   }
 
   /**
@@ -320,7 +313,7 @@ object Compressors {
     }
 
   def writeStreamToFile(in: InputStream, dest: String): Try[Unit] = Try {
-    autoClose(Files.newOutputStream(Paths.get(dest)))(out => writeBuffer(in, out))
+    autoClose(Files.newOutputStream(Paths.get(dest)))(out => IOUtils.copy(in, out))
   }
 
   /**
@@ -375,7 +368,7 @@ object Compressors {
     */
   def snappyCompress(src: String, dest: String): Try[CompressionStats] =
     compress(src, dest, SNAPPY)((b: BufferedOutputStream, i: InputStream) => {
-      autoClose(new FramedSnappyCompressorOutputStream(b))(zOut => writeBuffer(i, zOut))
+      autoClose(new FramedSnappyCompressorOutputStream(b))(zOut => IOUtils.copy(i, zOut))
     })
 
   /**
@@ -418,7 +411,10 @@ object Compressors {
       case Some(e) => Failure(new Exception(e.mkString(",")))
       case None =>
         Try(src.flatMap(z => getListOfFiles(new File(z)).get)).flatMap { ll =>
-          Ar.arCompress(ll, dest)
+          def f(out: OutputStream)  = new ArArchiveOutputStream(out)
+          def g(f: File, s: String) = new ArArchiveEntry(f, s)
+
+          compress3(Compressors.AR.name, ll, dest)(f)(g)
         }
     }
 
@@ -433,7 +429,9 @@ object Compressors {
       case Some(e) => Failure(new Exception(e.mkString(",")))
       case None =>
         Try(src.flatMap(z => getListOfFiles(new File(z)).get)).flatMap { ll =>
-          Cpio.cpioCompress(ll, dest)
+          def f(out: OutputStream)  = new CpioArchiveOutputStream(out)
+          def g(f: File, s: String) = new CpioArchiveEntry(f, s)
+          compress3(Compressors.CPIO.name, ll, dest)(f)(g)
         }
     }
 
@@ -441,7 +439,7 @@ object Compressors {
     ff: (BufferedInputStream, String) => Unit
   ): Try[DecompressionStats] = {
     val start   = System.currentTimeMillis()
-    val fileOut = dest + "/" + new File(src).getName.dropRight(method.ext.length)
+    val fileOut = dest + SEP + new File(src).getName.dropRight(method.ext.length)
     checkExtAndDestPath(src, dest, method.ext) {
       autoClose(new BufferedInputStream(Files.newInputStream(Paths.get(src)))) { x =>
         ff(x, fileOut)
@@ -451,7 +449,7 @@ object Compressors {
 
   private[scalacompress] def decompress2(src: String, dest: String, method: CompressionMethod) = {
     val start   = System.currentTimeMillis()
-    val fileOut = dest + "/" + new File(src).getName.dropRight(method.ext.length)
+    val fileOut = dest + SEP + new File(src).getName.dropRight(method.ext.length)
     checkExtAndDestPath(src, dest, method.ext) {
       autoClose(Files.newInputStream(new File(src).toPath)) { is =>
         autoClose(new CompressorStreamFactory().createCompressorInputStream(method.factory.get, is)) { in =>
@@ -464,7 +462,7 @@ object Compressors {
   private[scalacompress] def compress2(src: String, dest: String, method: CompressionMethod): Try[CompressionStats] = {
     val start = System.currentTimeMillis()
     checkSrcPath(List(src), dest) {
-      val zFile = s"$dest/${new File(src).getName}${method.ext}"
+      val zFile = s"$dest$SEP${new File(src).getName}${method.ext}"
       autoClose(Files.newOutputStream(new File(zFile).toPath)) { out =>
         autoClose(new CompressorStreamFactory().createCompressorOutputStream(method.factory.get, out)) { cos =>
           val in: InputStream = Files.newInputStream(new File(src).toPath)
@@ -475,12 +473,41 @@ object Compressors {
     }.flatMap(zFile => CompressionStats(method.name, List(src), zFile, System.currentTimeMillis() - start))
   }
 
+  private[scalacompress] def compress3(name: String, src: List[(File, Int)], outDir: String)(
+    ar: OutputStream => ArchiveOutputStream
+  )(entryf: (File, String) => ArchiveEntry): Try[CompressionStats] = {
+    val start = System.currentTimeMillis()
+    Try {
+      val ll = src.map(d => (d._1, d._1.getAbsolutePath.substring(d._2 + 1)))
+      Util.duplicate(ll.map(_._2)) match {
+        case x :: xs => throw new Exception("Duplicate files: " + (x :: xs).mkString(","))
+        case _ =>
+          Util
+            .autoClose(new FileOutputStream(new File(outDir))) { out =>
+              Util.autoClose {
+                ar(out)
+              } { arOutput =>
+                ll.foreach { file =>
+                  val entry = entryf(file._1, file._2)
+                  arOutput.putArchiveEntry(entry)
+                  if (!file._1.isDirectory)
+                    Util.autoClose(new FileInputStream(file._1))(ii => IOUtils.copy(ii, arOutput))
+                  arOutput.closeArchiveEntry()
+                }
+              }
+              outDir
+            }
+      }
+    }.flatMap(
+      outDir => CompressionStats(name, src.map(_._1.getAbsolutePath), outDir, System.currentTimeMillis() - start)
+    )
+  }
   private[scalacompress] def compress(src: String, dest: String, method: CompressionMethod)(
     compressor: (BufferedOutputStream, InputStream) => Unit
   ): Try[CompressionStats] = {
     val start = System.currentTimeMillis()
     checkSrcPath(List(src), dest) {
-      val zFile = s"$dest/${new File(src).getName}${method.ext}"
+      val zFile = s"$dest$SEP${new File(src).getName}${method.ext}"
       autoClose(Files.newInputStream(Paths.get(src))) { in =>
         autoClose(Files.newOutputStream(Paths.get(zFile))) { fout =>
           autoClose(new BufferedOutputStream(fout))(out => compressor(out, in))
@@ -491,8 +518,11 @@ object Compressors {
   }
 
   /**
+    * Compress many Array[Byte] in a OutputStream
     *
     * {{{
+    * import com.github.gekomad.scalacompress.Compressors._
+    *
     * val gzStream         = GzCompressBuffer(new FileOutputStream("/tmp/file.gz"))
     * val foo: Array[Byte] = "foo".getBytes(StandardCharsets.UTF_8)
     * val bar: Array[Byte] = "bar".getBytes(StandardCharsets.UTF_8)
@@ -513,9 +543,13 @@ object Compressors {
   }
 
   /**
+    * Decompress InputStream in Array[Byte]
+    *
     *{{{
+    * import com.github.gekomad.scalacompress.Compressors._
+    *
     * val gzStream     = GzDecompressInBuffer(new FileInputStream("/tmp/file.gz"))
-    * val buffer       = new Array[Byte](2)
+    * val buffer       = new Array[Byte](2) // in real world use a big buffer
     * val decompressed = new StringBuilder
     *
     * @tailrec

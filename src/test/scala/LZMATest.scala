@@ -5,7 +5,7 @@ import scala.util.{Failure, Success}
 
 class LZMATest extends AnyFunSuite {
 
-  test("lzma compress") {
+  test("lzma") {
     val tmpDir  = Util.createTmpDir(suiteName)
     val file    = "aa.txt"
     val src     = getClass.getResource(file).getPath
