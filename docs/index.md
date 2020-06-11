@@ -1,7 +1,9 @@
+---
+layout: home
+---
 [![Javadocs](https://javadoc.io/badge/com.github.gekomad/scala-compress_2.13.svg)](https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13/latest/com/github/gekomad/scalacompress/index.html)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.gekomad/scala-compress_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.gekomad/scala-compress_2.13)
 ======
-
 Archivers and Compressors for Scala
 
 #### Add the library to your project
@@ -40,7 +42,7 @@ View [microsite](https://gekomad.github.io/scala-compress/docs/) for more inform
 [Scala doc](https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13)
 
 ## Bugs and Feedback
-For bugs, questions and discussions please use [Github Issues](https://github.com/gekomad/scala-compress/issues).
+For bugs, questions and discussions please use [Github Issues](https://github.com/gekomad/scala-compress_2/issues).
 
 ## License
 

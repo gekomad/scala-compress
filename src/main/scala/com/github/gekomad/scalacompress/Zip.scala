@@ -5,7 +5,7 @@ import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.util
 import java.util.zip.ZipFile
 
-import com.github.gekomad.scalacompress.Compressors.ZIP
+import com.github.gekomad.scalacompress.Compressors.zipMethod
 import com.github.gekomad.scalacompress.Util._
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
@@ -33,9 +33,9 @@ private[scalacompress] object Zip {
         val a: Try[String] = new File(dest) match {
           case f if isWritableDirectory(dest) =>
             if (src.size == 1)
-              Success(s"$dest$SEP${new File(src.head).getName}${ZIP.ext}")
+              Success(s"$dest$SEP${new File(src.head).getName}${zipMethod.ext}")
             else
-              Success(s"$dest$SEP${f.getName}${ZIP.ext}")
+              Success(s"$dest$SEP${f.getName}${zipMethod.ext}")
           case f if isWritableDirectory(f.getParent) =>
             Success(f.getAbsolutePath)
           case _ => Failure(new Exception(s"file error $dest"))
@@ -48,9 +48,9 @@ private[scalacompress] object Zip {
                 .createArchiveOutputStream(org.apache.commons.compress.archivers.ArchiveStreamFactory.ZIP, out)
             def g(f: File, s: String) = new ZipArchiveEntry(f, s)
 
-            Compressors.compress3(Compressors.ZIP.name, ll, fileOut)(f)(g)
+            Compressors.compress3(Compressors.zipMethod.name.toString, ll, fileOut)(f)(g)
           }
-          b.flatMap(_ => CompressionStats(ZIP.name, src, fileOut, System.currentTimeMillis() - start))
+          b.flatMap(_ => CompressionStats(zipMethod.name.toString, src, fileOut, System.currentTimeMillis() - start))
         }
     }
 
@@ -70,6 +70,8 @@ private[scalacompress] object Zip {
         }
         filesOut.toList
       }
-    }.flatMap(filesOut => DecompressionStats(ZIP.name, src, filesOut, System.currentTimeMillis() - start))
+    }.flatMap(
+      filesOut => DecompressionStats(zipMethod.name.toString, src, filesOut, System.currentTimeMillis() - start)
+    )
   }
 }

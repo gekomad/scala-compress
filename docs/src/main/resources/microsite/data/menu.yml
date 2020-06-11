@@ -1,0 +1,49 @@
+options:
+
+  - title: Statistics
+    url: docs/
+
+  - title: Streams
+    url: docs/streams/
+
+  - title: Zip
+    url: docs/zip/
+
+  - title: Gzip
+    url: docs/gzip/
+
+  - title: Tar
+    url: docs/tar/
+
+  - title: BZ2
+    url: docs/bz2/
+
+  - title: Ar
+    url: docs/ar/
+
+  - title: Deflate
+    url: docs/deflate/
+
+  - title: LZ4
+    url: docs/lz4/
+
+  - title: LZMA
+    url: docs/lzma/
+
+  - title: Cpio
+    url: docs/cpio/
+
+  - title: 7zip
+    url: docs/7zip/
+
+  - title: Snappy
+    url: docs/snappy/
+
+  - title: XZ
+    url: docs/xz/
+
+  - title: Zstandard
+    url: docs/zstandard/
+
+  - title: Pack200
+    url: docs/pack200/

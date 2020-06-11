@@ -88,7 +88,7 @@ private[scalacompress] object SevenZip {
         }.flatMap(
           _ =>
             CompressionStats(
-              Compressors.SEVEN7.name,
+              Compressors.sevenZipMethod.name.toString,
               fileToArchive.map(_._1.getAbsolutePath),
               fileOut2,
               System.currentTimeMillis() - start

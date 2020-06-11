@@ -1,5 +1,5 @@
 name := "scala-compress"
-version := "0.0.2"
+version := "0.0.3"
 organization := "com.github.gekomad"
 scalaVersion := "2.13.2"
 
@@ -42,3 +42,29 @@ libraryDependencies += "org.scalatest"      %% "scalatest"       % "3.3.0-SNAP2"
 
 //sonatype
 publishTo := sonatypePublishTo.value
+
+//microsite
+enablePlugins(GhpagesPlugin)
+enablePlugins(MicrositesPlugin)
+micrositeBaseUrl := "/test2"
+git.remoteRepo := "https://github.com/gekomad/test2.git"
+micrositeGithubOwner := "gekomad"
+micrositeGithubRepo := "test2.git"
+micrositeGitterChannel := false
+micrositeShareOnSocial := false
+micrositeGithubLinks := false
+micrositeTheme := "pattern"
+
+import microsites.CdnDirectives
+
+micrositeCDNDirectives := CdnDirectives(
+  jsList = List(
+    "https://cdnjs.cloudflare.com/ajax/libs/ag-grid/7.0.2/ag-grid.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/ajaxify/6.6.0/ajaxify.min.js"
+  ),
+  cssList = List(
+    "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/1977.min.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/brooklyn.css"
+  )
+)
