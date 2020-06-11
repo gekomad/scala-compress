@@ -1,5 +1,6 @@
 [![Javadocs](https://javadoc.io/badge/com.github.gekomad/scala-compress_2.13.svg)](https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13/latest/com/github/gekomad/scalacompress/index.html)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.gekomad/scala-compress_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.gekomad/scala-compress_2.13)
+
 ======
 
 Archivers and Compressors for Scala
