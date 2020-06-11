@@ -46,10 +46,10 @@ publishTo := sonatypePublishTo.value
 //microsite
 enablePlugins(GhpagesPlugin)
 enablePlugins(MicrositesPlugin)
-micrositeBaseUrl := "/test2"
-git.remoteRepo := "https://github.com/gekomad/test2.git"
+micrositeBaseUrl := "/scala-compress"
+git.remoteRepo := "https://github.com/gekomad/scala-compress.git"
 micrositeGithubOwner := "gekomad"
-micrositeGithubRepo := "test2.git"
+micrositeGithubRepo := "scala-compress.git"
 micrositeGitterChannel := false
 micrositeShareOnSocial := false
 micrositeGithubLinks := false
