@@ -34,10 +34,7 @@ import com.github.gekomad.scalacompress.DecompressionStats
 ```
 
 
-View [microsite](https://gekomad.github.io/scala-compress/docs/) for more information.
-
-## Scaladoc API
-[Scala doc](https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13)
+## View [microsite](https://gekomad.github.io/scala-compress/docs/) for more information.
 
 ## Bugs and Feedback
 For bugs, questions and discussions please use [Github Issues](https://github.com/gekomad/scala-compress/issues).
