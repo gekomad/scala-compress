@@ -1,0 +1,171 @@
+<html><head><title>scala-compress</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="com.github.gekomad" /><meta name="description" content="scala-compress" /><meta name="og:image" content="/scala-compress/img/poster.png" /><meta name="image" property="og:image" content="/scala-compress/img/poster.png" /><meta name="og:title" content="scala-compress" /><meta name="title" property="og:title" content="scala-compress" /><meta name="og:site_name" content="scala-compress" /><meta name="og:url" content="" /><meta name="og:type" content="website" /><meta name="og:description" content="scala-compress" /><link rel="icon" type="image/png" href="/scala-compress/img/favicon.png" /><meta name="twitter:title" content="scala-compress" /><meta name="twitter:image" content="/scala-compress/img/poster.png" /><meta name="twitter:description" content="scala-compress" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/scala-compress/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/scala-compress/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/scala-compress/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/scala-compress/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/scala-compress/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/scala-compress/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/scala-compress/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/scala-compress/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/scala-compress/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/scala-compress/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/scala-compress/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/scala-compress/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/scala-compress/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/scala-compress/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/scala-compress/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/scala-compress/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/scala-compress/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/scala-compress/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/scala-compress/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/scala-compress/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/scala-compress/highlight/styles/vs.css" /><link rel="stylesheet" href="/scala-compress/css/pattern-style.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/1977.min.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/brooklyn.css" /></head><body><header id="site-header"><div class="navbar-wrapper"><div class="container"><div class="row"><div class="col-xs-6"><a href="/scala-compress/" class="brand"><div class="icon-wrapper"><span>scala-compress</span></div></a></div><div class="col-xs-6"><nav class="text-right"><ul class=""><li><a href="https://github.com/gekomad/scala-compress.git" target="_blank" rel="noopener noreferrer"><i class="fa fa-github"></i><span class="hidden-xs">GitHub</span></a></li></ul></nav></div></div></div></div><div class="jumbotron"><div class="container"><h1 class="text-center">scala-compress</h1><h2></h2><p class="text-center"><a href="https://github.com/gekomad/scala-compress.git" target="_blank" rel="noopener noreferrer" class="btn btn-outline-inverse">View on GitHub</a></p></div></div><div id="horizontal-menu"><ul class="horizontal-nav"></ul></div></header><main id="site-main"><section class="use"><div class="container"><div id="content"><p><a href="https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13/latest/com/github/gekomad/scalacompress/index.html"><img src="https://javadoc.io/badge/com.github.gekomad/scala-compress_2.13.svg" alt="Javadocs" /></a>
+<a href="https://maven-badges.herokuapp.com/maven-central/com.github.gekomad/scala-compress_2.13"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.gekomad/scala-compress_2.13/badge.svg" alt="Maven Central" /></a>
+======
+Archivers and Compressors for Scala</p>
+
+<h4 id="add-the-library-to-your-project">Add the library to your project</h4>
+
+<p><code class="language-plaintext highlighter-rouge">libraryDependencies += "com.github.gekomad" %% "scala-compress" % "0.0.3"</code></p>
+
+<p>Here some results on compressing/decompressing a big scala file (20.971.520 bytes - 20 Mb) with Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz and ssd disk.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Compression method</th>
+      <th>Output file size</th>
+      <th>Compression ratio</th>
+      <th>Milliseconds to compress</th>
+      <th>MB per second compression</th>
+      <th>Milliseconds to decompress</th>
+      <th>MB per second decompression</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>lzma</td>
+      <td>3.122.916</td>
+      <td>6.72</td>
+      <td>11004</td>
+      <td>2</td>
+      <td>304</td>
+      <td>69</td>
+    </tr>
+    <tr>
+      <td>7z</td>
+      <td>3.123.495</td>
+      <td>6.71</td>
+      <td>10468</td>
+      <td>2</td>
+      <td>274</td>
+      <td>77</td>
+    </tr>
+    <tr>
+      <td>xz</td>
+      <td>3.123.416</td>
+      <td>6.71</td>
+      <td>10503</td>
+      <td>2</td>
+      <td>385</td>
+      <td>54</td>
+    </tr>
+    <tr>
+      <td>bz2</td>
+      <td>3.610.542</td>
+      <td>5.81</td>
+      <td>2675</td>
+      <td>8</td>
+      <td>764</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <td>zStandard</td>
+      <td>4.413.677</td>
+      <td>4.75</td>
+      <td>104</td>
+      <td>202</td>
+      <td>35</td>
+      <td>599</td>
+    </tr>
+    <tr>
+      <td>deflate</td>
+      <td>4.546.808</td>
+      <td>4.61</td>
+      <td>557</td>
+      <td>38</td>
+      <td>94</td>
+      <td>223</td>
+    </tr>
+    <tr>
+      <td>zip</td>
+      <td>4.546.936</td>
+      <td>4.61</td>
+      <td>572</td>
+      <td>37</td>
+      <td>74</td>
+      <td>283</td>
+    </tr>
+    <tr>
+      <td>gz</td>
+      <td>4.546.820</td>
+      <td>4.61</td>
+      <td>579</td>
+      <td>36</td>
+      <td>77</td>
+      <td>272</td>
+    </tr>
+    <tr>
+      <td>snappy</td>
+      <td>6.380.034</td>
+      <td>3.29</td>
+      <td>1331</td>
+      <td>16</td>
+      <td>2672</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>lz4</td>
+      <td>7.387.702</td>
+      <td>2.84</td>
+      <td>72</td>
+      <td>291</td>
+      <td>25</td>
+      <td>839</td>
+    </tr>
+    <tr>
+      <td>cpio</td>
+      <td>20.972.032</td>
+      <td>1.00</td>
+      <td>25</td>
+      <td>839</td>
+      <td>18</td>
+      <td>1165</td>
+    </tr>
+    <tr>
+      <td>ar</td>
+      <td>20.971.588</td>
+      <td>1.00</td>
+      <td>30</td>
+      <td>699</td>
+      <td>33</td>
+      <td>636</td>
+    </tr>
+    <tr>
+      <td>tar</td>
+      <td>20.973.056</td>
+      <td>1.00</td>
+      <td>74</td>
+      <td>283</td>
+      <td>16</td>
+      <td>1311</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To use the library add these <strong>imports</strong></p>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">com.github.gekomad.scalacompress.Compressors._</span>
+<span class="k">import</span> <span class="nn">com.github.gekomad.scalacompress.CompressionStats</span>
+<span class="k">import</span> <span class="nn">com.github.gekomad.scalacompress.DecompressionStats</span>
+</code></pre></div></div>
+
+<p>View <a href="https://gekomad.github.io/scala-compress/docs/">microsite</a> for more information.</p>
+
+<h2 id="scaladoc-api">Scaladoc API</h2>
+<p><a href="https://javadoc.io/doc/com.github.gekomad/scala-compress_2.13">Scala doc</a></p>
+
+<h2 id="bugs-and-feedback">Bugs and Feedback</h2>
+<p>For bugs, questions and discussions please use <a href="https://github.com/gekomad/scala-compress_2/issues">Github Issues</a>.</p>
+
+<h2 id="license">License</h2>
+
+<p>Licensed under the Apache License, Version 2.0 (the “License”); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at</p>
+
+<p><a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+
+<p>Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+“AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.</p>
+</div></div></section><section class="technologies"><div class="container"><div class="row"></div></div></section></main><footer id="site-footer"><div class="container"><div class="row"><div class="col-xs-6"><p>scala-compress is designed and developed by <a href="" target="_blank" rel="noopener noreferrer">com.github.gekomad</a></p></div><div class="col-xs-6"><p class="text-right"><a href="https://github.com/gekomad/scala-compress.git" target="_blank" rel="noopener noreferrer"><span class="fa fa-github"></span>View on GitHub</a></p></div></div><div class="row"><div class="col-xs-6"><p>Website built with <a href="https://47deg.github.io/sbt-microsites/" target="_blank" rel="noopener noreferrer">sbt-microsites</a> - © 2019 <a href="https://www.47deg.com/" target="_blank" rel="noopener noreferrer">47 Degrees</a></p></div></div></div></footer><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scala-compress/highlight/highlight.pack.js"></script><script>hljs.configure({languages:['scala','java','bash']});
+hljs.initHighlightingOnLoad();
+              </script><script src="https://cdnjs.cloudflare.com/ajax/libs/ag-grid/7.0.2/ag-grid.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/ajaxify/6.6.0/ajaxify.min.js"></script><script>console.info('\x57\x65\x62\x73\x69\x74\x65\x20\x62\x75\x69\x6c\x74\x20\x77\x69\x74\x68\x3a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x5f\x5f\x0a\x20\x20\x20\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x5f\x20\x20\x2f\x20\x2f\x5f\x20\x20\x20\x20\x20\x20\x5f\x5f\x5f\x5f\x20\x5f\x5f\x5f\x20\x20\x28\x5f\x29\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x28\x5f\x29\x20\x2f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x0a\x20\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x60\x5f\x5f\x20\x5c\x2f\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x20\x2f\x20\x5f\x5f\x2f\x20\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x0a\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x5f\x2f\x20\x2f\x20\x2f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x5f\x5f\x2f\x20\x2f\x20\x20\x2f\x20\x2f\x5f\x2f\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x20\x2f\x5f\x2f\x20\x20\x5f\x5f\x28\x5f\x5f\x20\x20\x29\x0a\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2e\x5f\x5f\x5f\x2f\x5c\x5f\x5f\x2f\x20\x20\x20\x20\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x2f\x20\x20\x20\x5c\x5f\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x0a\x0a\x68\x74\x74\x70\x73\x3a\x2f\x2f\x34\x37\x64\x65\x67\x2e\x67\x69\x74\x68\x75\x62\x2e\x69\x6f\x2f\x73\x62\x74\x2d\x6d\x69\x63\x72\x6f\x73\x69\x74\x65\x73')</script><script src="/scala-compress/js/version-selector.js"></script></body></html>
