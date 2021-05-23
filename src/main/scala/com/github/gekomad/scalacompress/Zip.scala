@@ -4,13 +4,10 @@ import java.io.{InputStream, _}
 import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.util
 import java.util.zip.ZipFile
-
 import com.github.gekomad.scalacompress.Compressors.zipMethod
 import com.github.gekomad.scalacompress.Util._
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
-
-import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 private[scalacompress] object Zip {
@@ -58,7 +55,7 @@ private[scalacompress] object Zip {
     val start = System.currentTimeMillis()
     Try {
       autoClose(new ZipFile(src)) { zipFile =>
-        val filesOut = zipFile.entries().asIterator().asScala.map { f =>
+        val filesOut = javaIteratorToList(zipFile.entries().asIterator()).map { f =>
           val entry                = zipFile.getEntry(f.getName)
           val content: InputStream = zipFile.getInputStream(entry)
           val fileOut              = s"$dest$SEP${f.getName}"

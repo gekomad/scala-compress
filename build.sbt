@@ -1,29 +1,30 @@
 name := "scala-compress"
-version := "0.0.3"
+version := "1.0.0"
 organization := "com.github.gekomad"
-scalaVersion := "2.13.2"
+scalaVersion := "3.0.0"
 
-crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.9", "2.13.2")
+crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.9", "2.13.2", "3.0.0")
 
 val options = Seq(
   "-deprecation",
-  "-encoding", "UTF-8",
+  "-encoding",
+  "UTF-8",
   "-language:postfixOps",
   "-feature",
-  "-unchecked", // Enable additional warnings where generated code depends on assumptions.
-  "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
-  "-Xlint:private-shadow", // A private field (or class parameter) shadows a superclass field.
-  "-Xlint:stars-align", // Pattern sequence wildcard must align with sequence component.
-  "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
-  "-Ywarn-dead-code", // Warn when dead code is identified.
-  "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
-  "-Xlint:missing-interpolator", // A string literal appears to be missing an interpolator id.
-  "-Xlint:nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
-  "-Xlint:nullary-unit", // Warn when nullary methods return Unit.
-  "-Xlint:option-implicit", // Option.apply used implicit view.
+  "-unchecked",                    // Enable additional warnings where generated code depends on assumptions.
+  "-Xcheckinit",                   // Wrap field accessors to throw an exception on uninitialized access.
+  "-Xlint:private-shadow",         // A private field (or class parameter) shadows a superclass field.
+  "-Xlint:stars-align",            // Pattern sequence wildcard must align with sequence component.
+  "-Xlint:type-parameter-shadow",  // A local type parameter shadows a type already in scope.
+  "-Ywarn-dead-code",              // Warn when dead code is identified.
+  "-Ywarn-extra-implicit",         // Warn when more than one implicit parameter section is defined.
+  "-Xlint:missing-interpolator",   // A string literal appears to be missing an interpolator id.
+  "-Xlint:nullary-override",       // Warn when non-nullary `def f()' overrides nullary `def f'.
+  "-Xlint:nullary-unit",           // Warn when nullary methods return Unit.
+  "-Xlint:option-implicit",        // Option.apply used implicit view.
   "-Xlint:package-object-classes", // Class or object defined in package object.
-  "-explaintypes", // Explain type errors in more detail.
-  //"-Xfatal-warnings",
+  "-explaintypes",                 // Explain type errors in more detail.
+  "-Xfatal-warnings",
   "-Ywarn-unused"
 )
 
@@ -34,37 +35,37 @@ scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
 
 libraryDependencies += "org.apache.commons" % "commons-compress" % "1.20"
 libraryDependencies += "org.lz4"            % "lz4-java"         % "1.7.1"
-libraryDependencies += "org.tukaani"        % "xz"               % "1.8"
-libraryDependencies += "com.github.luben"   % "zstd-jni"         % "1.4.5-4"
+libraryDependencies += "org.tukaani"        % "xz"               % "1.9"
+libraryDependencies += "com.github.luben"   % "zstd-jni"         % "1.4.9-5"
 
 //test
-libraryDependencies += "org.scalatest"      %% "scalatest"       % "3.3.0-SNAP2" % Test
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % Test
 
-//sonatype
+// sonatype
 publishTo := sonatypePublishTo.value
 
-//microsite
-enablePlugins(GhpagesPlugin)
-enablePlugins(MicrositesPlugin)
-micrositeBaseUrl := "/scala-compress"
-git.remoteRepo := "https://github.com/gekomad/scala-compress.git"
-micrositeGithubOwner := "gekomad"
-micrositeGithubRepo := "scala-compress.git"
-micrositeGitterChannel := false
-micrositeShareOnSocial := false
-micrositeGithubLinks := false
-micrositeTheme := "pattern"
-
-import microsites.CdnDirectives
-
-micrositeCDNDirectives := CdnDirectives(
-  jsList = List(
-    "https://cdnjs.cloudflare.com/ajax/libs/ag-grid/7.0.2/ag-grid.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/ajaxify/6.6.0/ajaxify.min.js"
-  ),
-  cssList = List(
-    "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/1977.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/brooklyn.css"
-  )
-)
+//// microsite
+//enablePlugins(GhpagesPlugin)
+//enablePlugins(MicrositesPlugin)
+//micrositeBaseUrl := "/scala-compress"
+//git.remoteRepo := "https://github.com/gekomad/scala-compress.git"
+//micrositeGithubOwner := "gekomad"
+//micrositeGithubRepo := "scala-compress.git"
+//micrositeGitterChannel := false
+//micrositeShareOnSocial := false
+//micrositeGithubLinks := false
+//micrositeTheme := "pattern"
+//
+//import microsites.CdnDirectives
+//
+//micrositeCDNDirectives := CdnDirectives(
+//  jsList = List(
+//    "https://cdnjs.cloudflare.com/ajax/libs/ag-grid/7.0.2/ag-grid.min.js",
+//    "https://cdnjs.cloudflare.com/ajax/libs/ajaxify/6.6.0/ajaxify.min.js"
+//  ),
+//  cssList = List(
+//    "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css",
+//    "https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/1977.min.css",
+//    "https://cdnjs.cloudflare.com/ajax/libs/cssgram/0.1.12/brooklyn.css"
+//  )
+//)

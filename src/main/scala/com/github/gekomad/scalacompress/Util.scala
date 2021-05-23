@@ -113,4 +113,17 @@ object Util {
     }
     Try(go(dir)).map(_.map(i => (i, getParent(dir).length)))
   }
+
+  def javaIteratorToList[A](i: java.util.Iterator[A]): List[A] = {
+
+    def go(l: scala.collection.mutable.ListBuffer[A]): scala.collection.mutable.ListBuffer[A] =
+      Try(i.next()) match {
+        case Success(a) =>
+          l += a
+          go(l)
+        case _ => l
+      }
+
+    go(scala.collection.mutable.ListBuffer.empty[A]).toList
+  }
 }

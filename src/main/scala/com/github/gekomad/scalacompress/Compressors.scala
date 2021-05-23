@@ -37,8 +37,6 @@ import org.apache.commons.compress.compressors.snappy.{
 import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZCompressorOutputStream}
 import org.apache.commons.compress.compressors.zstandard.{ZstdCompressorInputStream, ZstdCompressorOutputStream}
 import org.apache.commons.compress.utils.IOUtils
-
-import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -189,7 +187,7 @@ object Compressors {
     * @return ZipEntry List
     */
   def zipEntries(src: String): Try[List[ZipEntry]] = Try {
-    autoClose(new ZipFile(src))(_.entries().asIterator().asScala.toList)
+    autoClose(new ZipFile(src))(a => Util.javaIteratorToList(a.entries().asIterator()))
   }
 
   /**
@@ -316,6 +314,7 @@ object Compressors {
       case SNAPPY    => new FramedSnappyCompressorOutputStream(out)
     }
     Util.autoClose(zStream)(zStream => IOUtils.copy(in, zStream))
+    ()
   }
 
   /**
@@ -351,6 +350,7 @@ object Compressors {
       case SNAPPY    => new FramedSnappyCompressorInputStream(in)
     }
     Util.autoClose(zStream)(zStream => IOUtils.copy(zStream, out))
+    ()
   }
 
   /**
@@ -401,6 +401,7 @@ object Compressors {
 
   def writeStreamToFile(in: InputStream, dest: String): Try[Unit] = Try {
     autoClose(Files.newOutputStream(Paths.get(dest)))(out => IOUtils.copy(in, out))
+    ()
   }
 
   /**
