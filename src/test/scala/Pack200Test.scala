@@ -12,7 +12,8 @@ class Pack200Test extends AnyFunSuite {
     val dest    = s"$tmpDir"
     new File(srcDecr).mkdirs()
     pack200Compress(src, dest) match {
-      case Failure(e) => assert(false, e)
+      case Failure(e) =>
+        assert(false, e)
       case Success(statistics) =>
         println("-----------\n" + Util.toString(statistics) + "-----------\n")
         pack200Decompress(dest + "/example.jar.pack", srcDecr) match {

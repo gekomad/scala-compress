@@ -6,7 +6,7 @@ Archivers and Compressors for Scala
 
 #### Add the library to your project
 
-`libraryDependencies += "com.github.gekomad" %% "scala-compress" % "1.0.0"`
+`libraryDependencies += "com.github.gekomad" %% "scala-compress" % "1.0.1"`
 
 Here some results on compressing/decompressing a big scala file (20.971.520 bytes - 20 Mb) with Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz and ssd disk.
 
